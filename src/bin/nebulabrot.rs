@@ -12,7 +12,7 @@ use std::f64::consts::PI;
 use std::time::SystemTime;
 
 const MAX_ITER: usize = 10000; // how many iterations to do before deciding the series doesn't diverge
-const RANDOM_REPEATS: usize = 400000; // how many random points to use for drawing
+const RANDOM_REPEATS: usize = 4000000; // how many random points to use for drawing
 const IMG_X: usize = 600; // image width in pixels
 const IMG_Y: usize = 600; // image height in pixels
 const XVIEWWIDTH: f64 = 4.0; // we take -2.0 to 2.0
@@ -21,7 +21,6 @@ const OUTSIDE: f64 = 4.0; // we take r^2 > 4.0 as outside, using in the random p
 
 fn main() {
     let mut dat: Vec<u32> = vec![0; (IMG_X * IMG_Y) as usize];
-    let mut img_buf = image::ImageBuffer::new(IMG_X as u32, IMG_Y as u32);
     let mut rng = rand::thread_rng();
     for i in 0..RANDOM_REPEATS {
         // println!("{} th gen", i);
@@ -33,12 +32,10 @@ fn main() {
             }
         }
     }
-    let maximum = dat.iter().fold(0, |m, &v| max(m, v));
-    for (x, y, pixel) in img_buf.enumerate_pixels_mut() {
-        let val = (255 * (dat[x as usize + y as usize * IMG_X]) / maximum) as u8;
-        *pixel = image::Rgb([0, val, val]);
-    }
     let now = SystemTime::now();
+    //     let img_buf = draw_picture(&dat);
+    let img_buf = draw_picture(&dat);
+    let maximum = dat.iter().fold(0, |m, &v| max(m, v));
     img_buf
         .save(format!(
             "brot-{}-maxi{}-rr{}-max{}.png",
@@ -50,6 +47,16 @@ fn main() {
             maximum
         ))
         .unwrap();
+}
+
+fn draw_picture(dat: &Vec<u32>) -> image::ImageBuffer<image::Rgba<u8>, Vec<u8>> {
+    let maximum = dat.iter().fold(0, |m, &v| max(m, v));
+    let mut img_buf = image::ImageBuffer::new(IMG_X as u32, IMG_Y as u32);
+    for (x, y, pixel) in img_buf.enumerate_pixels_mut() {
+        let val = (255 * (dat[x as usize + y as usize * IMG_X]) / maximum) as u8;
+        *pixel = image::Rgba([0, val, val, 255]);
+    }
+    img_buf
 }
 
 fn add_point(dat: &mut Vec<u32>, z: &Complex<f64>) {
