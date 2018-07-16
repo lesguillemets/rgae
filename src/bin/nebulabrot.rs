@@ -59,6 +59,16 @@ fn draw_picture(dat: &Vec<u32>) -> image::ImageBuffer<image::Rgba<u8>, Vec<u8>> 
     img_buf
 }
 
+fn draw_picture_sqrt(dat: &Vec<u32>) -> image::ImageBuffer<image::Rgba<u8>, Vec<u8>> {
+    let maximum = f64::from(dat.iter().fold(0, |m, &v| max(m, v)));
+    let mut img_buf = image::ImageBuffer::new(IMG_X as u32, IMG_Y as u32);
+    for (x, y, pixel) in img_buf.enumerate_pixels_mut() {
+        let val = 255 * ((f64::from(dat[x as usize + y as usize * IMG_X]) / maximum).sqrt()) as u8;
+        *pixel = image::Rgba([0, val, val, 255]);
+    }
+    img_buf
+}
+
 fn add_point(dat: &mut Vec<u32>, z: &Complex<f64>) {
     let x = ((XVIEWWIDTH / 2.0 + z.re) * IMG_X as f64 / XVIEWWIDTH).floor() as usize;
     let y = ((YVIEWWIDTH / 2.0 + z.im) * IMG_Y as f64 / YVIEWWIDTH).floor() as usize;
