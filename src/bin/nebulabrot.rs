@@ -15,7 +15,7 @@ fn main() {
     let imgy: usize = 300;
     let xviewwidth = 4.0;
     let yviewwidth = 4.0;
-    let random_repeats = 10000;
+    let random_repeats = 200000;
     let mut dat: Vec<u32> = vec![0; ((imgx * imgy) as usize)];
     let mut img_buf = image::ImageBuffer::new(imgx as u32, imgy as u32);
     let mut maximum = 0;
