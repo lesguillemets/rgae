@@ -61,9 +61,10 @@ fn get_loc(i: usize) -> Complex<f64> {
 
 fn to_colour(n: u32, m: u32) -> image::Rgba<u8> {
     if n == 0 {
-        image::Rgba([0, 63, 125, 125])
+        image::Rgba([0, 0, 0, 220])
     } else {
-        image::Rgba([0, 0, 0, 255])
+        let v = (255.0 * f64::from(n).ln() / f64::from(m).ln()).floor() as u8;
+        image::Rgba([0, v / 2, v, 255])
     }
 }
 
