@@ -5,18 +5,22 @@ use std::cmp::max;
 use std::sync::mpsc;
 use std::thread;
 
-const MAX_ITER: u32 = 20000;
-const IMG_X: usize = 5000; // image width in pixels
-const IMG_Y: usize = 5000; // image height in pixels
-const XVIEWWIDTH: f64 = 3.0; // we take -1.5 to 1.5 const YVIEWWIDTH: f64 = 3.0; // we take -1.5 to 1.5
-const YVIEWWIDTH: f64 = 3.0; // we take -1.5 to 1.5 const YVIEWWIDTH: f64 = 3.0; // we take -1.5 to 1.5
+const MAX_ITER: u32 = 30000;
+const IMG_X: usize = 10000; // image width in pixels
+const IMG_Y: usize = 10000; // image height in pixels
+                            // const XVIEWWIDTH: f64 = 4.2; // we take -2.1 to 2.1
+                            // const YVIEWWIDTH: f64 = 4.2; // we take -2.1 to 2.1
+const YVIEWWIDTH: f64 = 2.8;
+const XVIEWWIDTH: f64 = 2.8;
+const XVIEWLEFT: f64 = -2.2;
+const XVIEWRIGHT: f64 = XVIEWLEFT + XVIEWWIDTH;
 const XLEFTMOST: f64 = -XVIEWWIDTH / 2.0;
 const YUPPERMOST: f64 = -YVIEWWIDTH / 2.0;
 const GRID_WIDTH: f64 = XVIEWWIDTH / (IMG_X as f64);
 const GRID_HEIGHT: f64 = YVIEWWIDTH / (IMG_Y as f64);
 const DIVERGE_CRITERIA: f64 = 16.0; // we take r^2 > 16.0 as outside in judging the convergence
 
-const MAX_JOBS: usize = 8;
+const MAX_JOBS: usize = 10;
 const VERBOSE: bool = false;
 
 fn main() {
@@ -54,7 +58,7 @@ fn get_loc(i: usize) -> Complex<f64> {
     let block_x = f64::from((i % IMG_X) as u32);
     let block_y = f64::from((i / IMG_X) as u32);
     Complex::new(
-        XLEFTMOST + GRID_WIDTH * block_x,
+        XVIEWLEFT + GRID_WIDTH * block_x,
         YUPPERMOST + GRID_HEIGHT * block_y,
     )
 }
@@ -65,6 +69,17 @@ fn to_colour(n: u32, m: u32) -> image::Rgba<u8> {
     } else {
         let v = (255.0 * f64::from(n).ln() / f64::from(m).ln()).floor() as u8;
         image::Rgba([0, v / 2, v, 255])
+    }
+}
+
+fn to_colour1(n: u32, m: u32) -> image::Rgba<u8> {
+    if n == 0 {
+        image::Rgba([0, 0, 0, 220])
+    } else {
+        let v = (255.0 * (f64::from(n).ln() / f64::from(m).ln()))
+            .powi(2)
+            .floor() as u8;
+        image::Rgba([v / 4, v / 2, v, 255])
     }
 }
 
@@ -91,7 +106,7 @@ fn draw_picture(dat: &Vec<u32>) -> image::ImageBuffer<image::Rgba<u8>, Vec<u8>> 
     let mut img_buf = image::ImageBuffer::new(IMG_X as u32, IMG_Y as u32);
     for (x, y, pixel) in img_buf.enumerate_pixels_mut() {
         let val = dat[x as usize + y as usize * IMG_X];
-        *pixel = to_colour(val, maximum);
+        *pixel = to_colour1(val, maximum);
     }
     img_buf
 }
