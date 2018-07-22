@@ -5,33 +5,36 @@ use std::cmp::max;
 use std::sync::mpsc;
 use std::thread;
 
+// |a_MAX_ITER|^2 <  DIVERGE_CRITERIA then we decide the sequence doen't diverge
 const MAX_ITER: u32 = 30000;
+const DIVERGE_CRITERIA: f64 = 16.0;
+
 const IMG_X: usize = 10000; // image width in pixels
 const IMG_Y: usize = 10000; // image height in pixels
-                            // const XVIEWWIDTH: f64 = 4.2; // we take -2.1 to 2.1
-                            // const YVIEWWIDTH: f64 = 4.2; // we take -2.1 to 2.1
-const YVIEWWIDTH: f64 = 2.8;
-const XVIEWWIDTH: f64 = 2.8;
-const XVIEWLEFT: f64 = -2.2;
-const XVIEWRIGHT: f64 = XVIEWLEFT + XVIEWWIDTH;
-const XLEFTMOST: f64 = -XVIEWWIDTH / 2.0;
-const YUPPERMOST: f64 = -YVIEWWIDTH / 2.0;
-const GRID_WIDTH: f64 = XVIEWWIDTH / (IMG_X as f64);
-const GRID_HEIGHT: f64 = YVIEWWIDTH / (IMG_Y as f64);
-const DIVERGE_CRITERIA: f64 = 16.0; // we take r^2 > 16.0 as outside in judging the convergence
 
-const MAX_JOBS: usize = 10;
+const XVIEWWIDTH: f64 = 2.8; // viewport size
+const YVIEWWIDTH: f64 = 2.8;
+
+const XVIEWLEFT: f64 = -2.2; // XVIEWLEFT <= Re(z) < XVIEWLEFT + XVIEWWIDTH
+const YUPPERMOST: f64 = -YVIEWWIDTH / 2.0;
+const GRID_WIDTH: f64 = XVIEWWIDTH / (IMG_X as f64); // each pixel corresponds to this width
+const GRID_HEIGHT: f64 = YVIEWWIDTH / (IMG_Y as f64);
+
+const MAX_JOBS: usize = 3; // TODO: get the number from command argument
 const VERBOSE: bool = false;
 
 fn main() {
     let mut dat: Vec<u32> = vec![0; (IMG_X * IMG_Y) as usize];
+
+    // Spawn MAX_JOBS jobs for calculation
     let (tx, rx) = mpsc::channel();
     for i in 1..MAX_JOBS {
         let tx1 = mpsc::Sender::clone(&tx);
         mk_calc_worker(tx1, i);
     }
-    mk_calc_worker(tx, 0);
+    mk_calc_worker(tx, 0); // TODO: this doesn't feel right
 
+    // save results sent from the workers
     for (loc, result) in rx {
         if let Some(n) = result {
             if VERBOSE {

@@ -11,13 +11,13 @@ use std::cmp::max;
 use std::f64::consts::PI;
 use std::time::SystemTime;
 
-const MAX_ITER: usize = 20000; // how many iterations to do before deciding the series doesn't diverge
-const RANDOM_REPEATS: usize = 30000000; // how many random points to use for drawing
-const IMG_X: usize = 1200; // image width in pixels
-const IMG_Y: usize = 1200; // image height in pixels
-const XVIEWWIDTH: f64 = 4.0; // we take -2.0 to 2.0
-const YVIEWWIDTH: f64 = 4.0; // we take -2.0 to 2.0
-const OUTSIDE: f64 = 4.0; // we take r^2 > 4.0 as outside, using in the random point generation and judging the convergence
+const MAX_ITER: usize = 15000; // how many iterations to do before deciding the series doesn't diverge
+const RANDOM_REPEATS: usize = 10000000; // how many random points to use for drawing
+const IMG_X: usize = 2000; // image width in pixels
+const IMG_Y: usize = 2000; // image height in pixels
+const XVIEWWIDTH: f64 = 2.0; // we take -2.0 to 2.0
+const YVIEWWIDTH: f64 = 2.0; // we take -2.0 to 2.0
+const OUTSIDE: f64 = 1.0; // we take r^2 > 4.0 as outside, using in the random point generation and judging the convergence
 const SAVE_EVERY_RATIO: f64 = 1.2;
 const SAVE_START: f64 = 2000.0;
 const SAVE_PROGRESS: bool = true;
