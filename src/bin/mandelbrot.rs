@@ -5,18 +5,18 @@ use std::cmp::max;
 use std::sync::mpsc;
 use std::thread;
 
-// |a_MAX_ITER|^2 <  DIVERGE_CRITERIA then we decide the sequence doen't diverge
-const MAX_ITER: u32 = 30000;
+// |z_MAX_ITER|^2 <  DIVERGE_CRITERIA then we decide the sequence doen't diverge
+const MAX_ITER: u32 = 10000;
 const DIVERGE_CRITERIA: f64 = 16.0;
 
-const IMG_X: usize = 10000; // image width in pixels
-const IMG_Y: usize = 10000; // image height in pixels
+const IMG_X: usize = 300; // image width in pixels
+const IMG_Y: usize = 300; // image height in pixels
 
-const XVIEWWIDTH: f64 = 2.8; // viewport size
+const XVIEWWIDTH: f64 = 2.8; // viewport size. See XVIEWLEFT belpow
 const YVIEWWIDTH: f64 = 2.8;
 
 const XVIEWLEFT: f64 = -2.2; // XVIEWLEFT <= Re(z) < XVIEWLEFT + XVIEWWIDTH
-const YUPPERMOST: f64 = -YVIEWWIDTH / 2.0;
+const YVIEWTOP: f64 = -YVIEWWIDTH / 2.0;
 const GRID_WIDTH: f64 = XVIEWWIDTH / (IMG_X as f64); // each pixel corresponds to this width
 const GRID_HEIGHT: f64 = YVIEWWIDTH / (IMG_Y as f64);
 
@@ -46,7 +46,7 @@ fn main() {
         }
     }
 
-    save(&dat);
+    save(&dat, "frac.png");
 }
 
 fn mk_calc_worker(tx: mpsc::Sender<(usize, Option<u32>)>, modulo: usize) -> () {
@@ -57,19 +57,22 @@ fn mk_calc_worker(tx: mpsc::Sender<(usize, Option<u32>)>, modulo: usize) -> () {
     });
 }
 
+// i_th pixel corresponds to this square in C
 fn get_loc(i: usize) -> Complex<f64> {
     let block_x = f64::from((i % IMG_X) as u32);
     let block_y = f64::from((i / IMG_X) as u32);
     Complex::new(
         XVIEWLEFT + GRID_WIDTH * block_x,
-        YUPPERMOST + GRID_HEIGHT * block_y,
+        YVIEWTOP + GRID_HEIGHT * block_y,
     )
 }
 
+// n: iterations it took for the sequence to diverge. m: maximum in the picture
 fn to_colour(n: u32, m: u32) -> image::Rgba<u8> {
     if n == 0 {
         image::Rgba([0, 0, 0, 220])
     } else {
+        // normalised logarithm
         let v = (255.0 * f64::from(n).ln() / f64::from(m).ln()).floor() as u8;
         image::Rgba([0, v / 2, v, 255])
     }
@@ -86,6 +89,7 @@ fn to_colour1(n: u32, m: u32) -> image::Rgba<u8> {
     }
 }
 
+// None if the sequence doen't diverge there; Some(n) if it diverges in its n-th iteratation
 fn calc_val(c: Complex<f64>) -> Option<u32> {
     let mut z = Complex::new(0.0, 0.0);
     for iteration in 0..MAX_ITER {
@@ -96,9 +100,9 @@ fn calc_val(c: Complex<f64>) -> Option<u32> {
     }
     None
 }
-fn save(dat: &Vec<u32>) -> () {
+fn save(dat: &Vec<u32>, f_name: &str) -> () {
     let img_buf = draw_picture(&dat);
-    img_buf.save(format!("out.png")).unwrap();
+    img_buf.save(f_name).unwrap();
 }
 
 fn draw_picture(dat: &Vec<u32>) -> image::ImageBuffer<image::Rgba<u8>, Vec<u8>> {
@@ -109,7 +113,7 @@ fn draw_picture(dat: &Vec<u32>) -> image::ImageBuffer<image::Rgba<u8>, Vec<u8>> 
     let mut img_buf = image::ImageBuffer::new(IMG_X as u32, IMG_Y as u32);
     for (x, y, pixel) in img_buf.enumerate_pixels_mut() {
         let val = dat[x as usize + y as usize * IMG_X];
-        *pixel = to_colour1(val, maximum);
+        *pixel = to_colour(val, maximum);
     }
     img_buf
 }
